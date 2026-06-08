@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Analyse Avis — Beaute d'Orient</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--noir:#000;--or:#C9A96E;--blanc:#fff;--gris:#111;--gris2:#1a1a1a;--muted:#666;--vert:#16a34a;--rouge:#dc2626;}
+body{font-family:'Jost',sans-serif;background:var(--noir);color:var(--blanc);min-height:100vh;}
+header{background:var(--gris);border-bottom:1px solid rgba(201,169,110,0.2);padding:1.2rem 1.5rem;display:flex;align-items:center;justify-content:space-between;}
+.h-logo{font-family:'Playfair Display',serif;font-size:1rem;font-style:italic;color:var(--or);}
+.h-sub{font-size:0.7rem;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;}
+.container{max-width:700px;margin:0 auto;padding:2rem 1rem;}
+.section{background:var(--gris);border:1px solid rgba(201,169,110,0.15);padding:1.5rem;margin-bottom:1.5rem;}
+.section-title{font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--or);margin-bottom:1rem;}
+textarea{width:100%;padding:1rem;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.2);color:var(--blanc);font-family:'Jost',sans-serif;font-size:0.85rem;resize:vertical;outline:none;min-height:180px;line-height:1.6;}
+.btn-or{width:100%;padding:1rem;background:var(--or);color:var(--noir);border:none;font-family:'Jost',sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer;letter-spacing:0.1em;margin-bottom:0.5rem;}
+.btn-outline{width:100%;padding:1rem;background:none;border:1px solid rgba(201,169,110,0.3);color:var(--or);font-family:'Jost',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;letter-spacing:0.05em;margin-bottom:0.5rem;}
+.tabs{display:flex;background:rgba(255,255,255,0.03);border-bottom:1px solid rgba(201,169,110,0.1);margin-bottom:1.5rem;}
+.tab{flex:1;padding:0.9rem;font-size:0.72rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);text-align:center;text-transform:uppercase;}
+.tab.active{color:var(--or);border-bottom-color:var(--or);}
+.result-block{background:var(--gris2);border-left:2px solid;padding:1.2rem;margin-bottom:1rem;}
+.result-block.pos{border-color:var(--vert);}
+.result-block.neg{border-color:var(--rouge);}
+.result-block.con{border-color:var(--or);}
+.block-title{font-size:0.68rem;letter-spacing:0.15em;text-transform:uppercase;font-weight:700;margin-bottom:0.8rem;}
+.pos .block-title{color:var(--vert);}
+.neg .block-title{color:var(--rouge);}
+.con .block-title{color:var(--or);}
+.item{display:flex;gap:0.8rem;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.85rem;line-height:1.5;}
+.item:last-child{border-bottom:none;}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:7px;}
+.dv{background:var(--vert);}
+.dr{background:var(--rouge);}
+.do{background:var(--or);}
+.score-box{text-align:center;padding:2rem;background:var(--gris2);border:1px solid rgba(201,169,110,0.2);margin-bottom:1.5rem;}
+.score-num{font-family:'Playfair Display',serif;font-size:4rem;color:var(--or);}
+.prompt-box{background:rgba(255,255,255,0.03);border:1px solid rgba(201,169,110,0.2);padding:1.2rem;font-size:0.78rem;color:rgba(255,255,255,0.6);line-height:1.6;font-family:'Jost',sans-serif;white-space:pre-wrap;word-break:break-word;max-height:200px;overflow-y:auto;}
+.copy-success{color:var(--vert);font-size:0.78rem;text-align:center;margin-top:0.5rem;display:none;}
+.loading{text-align:center;padding:2rem;color:var(--muted);display:none;}
+.spinner{width:30px;height:30px;border:2px solid rgba(201,169,110,0.2);border-top-color:var(--or);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 1rem;}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="h-logo">Beaute d'Orient</div>
+    <div class="h-sub">Analyse IA des avis clients</div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" onclick="changerTab('local',this)">Analyse rapide</div>
+    <div class="tab" onclick="changerTab('claude',this)">Analyse IA Claude</div>
+  </div>
+
+  <!-- SAISIE AVIS -->
+  <div class="section">
+    <div class="section-title">Collez vos avis Google</div>
+    <textarea id="avis-input" placeholder="Exemple :
+5/5 — Fadhila est tres professionnelle ! Epilation rapide et indolore.
+
+4/5 — Tres bon soin Hydraskin. Ma peau est lumineuse. Parking difficile.
+
+5/5 — Accueil chaleureux, je reviendrai !
+
+5/5 — Meilleure epilation orientale de Chartres !"></textarea>
+  </div>
+
+  <!-- TAB ANALYSE LOCALE -->
+  <div id="tab-local">
+    <button class="btn-or" onclick="analyserLocal()">Analyser maintenant</button>
+    <div class="loading" id="loading-local">
+      <div class="spinner"></div>
+      <div>Analyse en cours...</div>
+    </div>
+    <div id="result-local" style="display:none;"></div>
+  </div>
+
+  <!-- TAB CLAUDE -->
+  <div id="tab-claude" style="display:none;">
+    <div class="section">
+      <div class="section-title">Comment utiliser Claude IA</div>
+      <p style="font-size:0.82rem;color:rgba(255,255,255,0.5);margin-bottom:1rem;line-height:1.6;">
+        1. Cliquez "Generer le prompt"<br/>
+        2. Copiez le prompt<br/>
+        3. Ouvrez claude.ai<br/>
+        4. Collez et envoyez !
+      </p>
+      <button class="btn-or" onclick="genererPrompt()">Generer le prompt</button>
+      <div id="prompt-zone" style="display:none;">
+        <div class="prompt-box" id="prompt-text"></div>
+        <button class="btn-outline" onclick="copierPrompt()" style="margin-top:0.8rem;">Copier le prompt</button>
+        <div class="copy-success" id="copy-success">Copie !</div>
+        <a href="https://claude.ai" target="_blank" style="display:block;text-align:center;padding:1rem;background:var(--violet,#4A1A6B);color:white;text-decoration:none;font-family:'Jost',sans-serif;font-weight:700;font-size:0.85rem;margin-top:0.5rem;letter-spacing:0.1em;">
+          Ouvrir Claude.ai
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function changerTab(t, btn){
+  document.querySelectorAll('.tab').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  document.getElementById('tab-local').style.display = t === 'local' ? 'block' : 'none';
+  document.getElementById('tab-claude').style.display = t === 'claude' ? 'block' : 'none';
+}
+
+// ANALYSE LOCALE
+function analyserLocal(){
+  var avis = document.getElementById('avis-input').value.trim();
+  if(!avis){ alert('Collez vos avis !'); return; }
+
+  document.getElementById('loading-local').style.display = 'block';
+  document.getElementById('result-local').style.display = 'none';
+
+  setTimeout(function(){
+    var result = analyseLocale(avis);
+    afficherResultatLocal(result);
+    document.getElementById('loading-local').style.display = 'none';
+    document.getElementById('result-local').style.display = 'block';
+  }, 800);
+}
+
+function analyseLocale(texte){
+  var lignes = texte.split('\n').filter(function(l){ return l.trim(); });
+  
+  // Calculer note moyenne
+  var notes = [];
+  lignes.forEach(function(l){
+    var m = l.match(/(\d)[\/\s]*5/);
+    if(m) notes.push(parseInt(m[1]));
+  });
+  var noteMoy = notes.length > 0 ? (notes.reduce(function(a,b){return a+b;},0)/notes.length).toFixed(1) : '?';
+
+  // Mots positifs
+  var motsPos = ['excellente','parfaite','rapide','douce','professionnelle','recommend','super','top','magnifique','incroyable','lumineuse','propre','accueil','chaleureux','reviendrai','meilleure','qualite','satisfaite','tres bien','bravo'];
+  var motsNeg = ['parking','attente','prix','cher','difficile','long','bruit','froid','chaud','probleme','dommage','ameliorer'];
+  
+  var texteLower = texte.toLowerCase();
+  var positifs = [];
+  var negatifs = [];
+
+  if(texteLower.includes('rapide') || texteLower.includes('vite')) positifs.push('Les clientes apprecient la rapidite de l\'epilation');
+  if(texteLower.includes('douce') || texteLower.includes('indolore')) positifs.push('La technique douce et sans douleur est tres appreciee');
+  if(texteLower.includes('professionnel')) positifs.push('Le professionnalisme de Fadhila est souligne');
+  if(texteLower.includes('accueil') || texteLower.includes('chaleureux')) positifs.push('L\'accueil chaleureux est remarque par les clientes');
+  if(texteLower.includes('hydraskin') || texteLower.includes('visage') || texteLower.includes('lumineuse')) positifs.push('Les soins Hydraskin ont d\'excellents resultats');
+  if(texteLower.includes('reviendrai') || texteLower.includes('recommande')) positifs.push('Les clientes fidelisees recommandent l\'institut');
+  if(positifs.length === 0) positifs.push('Clientes satisfaites de la qualite des soins');
+
+  if(texteLower.includes('parking') || texteLower.includes('stationner')) negatifs.push('Le stationnement est mentionne comme difficile');
+  if(texteLower.includes('attente') || texteLower.includes('retard')) negatifs.push('Des temps d\'attente ont ete signales');
+  if(texteLower.includes('cher') || texteLower.includes('prix eleve')) negatifs.push('Quelques mentions sur les tarifs');
+
+  var conseils = [];
+  if(negatifs.some(function(n){ return n.includes('stationnement'); })) conseils.push('Indiquer les options de stationnement sur Google Business et le site');
+  if(parseFloat(noteMoy) >= 4.5) conseils.push('Continuer sur cette lancee ! Encourager encore plus d\'avis');
+  conseils.push('Partager les meilleurs avis sur Instagram pour attirer de nouvelles clientes');
+  conseils.push('Repondre a tous les avis Google pour montrer votre engagement');
+  if(positifs.some(function(p){ return p.includes('Hydraskin'); })) conseils.push('Mettre en avant les soins Hydraskin dans votre communication');
+
+  return {note: noteMoy, nb: notes.length, positifs: positifs, negatifs: negatifs, conseils: conseils};
+}
+
+function afficherResultatLocal(r){
+  var html = '';
+  
+  // Score
+  html += '<div class="score-box" style="margin-bottom:1.5rem;">';
+  html += '<div class="score-num">' + r.note + '</div>';
+  html += '<div style="font-size:0.72rem;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;margin-top:0.5rem;">Note moyenne sur 5</div>';
+  html += '<div style="font-size:0.75rem;color:rgba(255,255,255,0.4);margin-top:0.3rem;">' + r.nb + ' avis analyses</div>';
+  html += '</div>';
+
+  // Positifs
+  html += '<div class="result-block pos"><div class="block-title">Points forts</div>';
+  r.positifs.forEach(function(p){ html += '<div class="item"><div class="dot dv"></div><div>' + p + '</div></div>'; });
+  html += '</div>';
+
+  // Negatifs
+  html += '<div class="result-block neg"><div class="block-title">Points a ameliorer</div>';
+  if(r.negatifs.length === 0){
+    html += '<div class="item"><div class="dot dv"></div><div>Aucun point negatif notable !</div></div>';
+  } else {
+    r.negatifs.forEach(function(n){ html += '<div class="item"><div class="dot dr"></div><div>' + n + '</div></div>'; });
+  }
+  html += '</div>';
+
+  // Conseils
+  html += '<div class="result-block con"><div class="block-title">Conseils</div>';
+  r.conseils.forEach(function(c){ html += '<div class="item"><div class="dot do"></div><div>' + c + '</div></div>'; });
+  html += '</div>';
+
+  document.getElementById('result-local').innerHTML = html;
+}
+
+// PROMPT CLAUDE
+function genererPrompt(){
+  var avis = document.getElementById('avis-input').value.trim();
+  if(!avis){ alert('Collez vos avis !'); return; }
+
+  var prompt = "Analyse ces avis Google de Beaute d'Orient, un institut de beaute orientale a Le Coudray (Chartres) tenu par Fadhila.\n\nAvis clients :\n" + avis + "\n\nFais une analyse complete avec :\n1. La note moyenne sur 5\n2. Un resume en 2-3 phrases\n3. Les 3-5 points forts (ce que les clientes adorent)\n4. Les points a ameliorer (si il y en a)\n5. Des conseils pratiques pour Fadhila\n\nSois concis, pratique et bienveillant.";
+
+  document.getElementById('prompt-text').textContent = prompt;
+  document.getElementById('prompt-zone').style.display = 'block';
+}
+
+function copierPrompt(){
+  var texte = document.getElementById('prompt-text').textContent;
+  navigator.clipboard.writeText(texte).then(function(){
+    document.getElementById('copy-success').style.display = 'block';
+    setTimeout(function(){ document.getElementById('copy-success').style.display = 'none'; }, 2000);
+  });
+}
+</script>
+</body>
+</html>
